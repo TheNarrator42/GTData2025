@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Reference to the table body.
   const tbody = document.getElementById("data-table-body");
-  const maxRows = 9; // Maximum number of rows to store/display
+  const maxRows = 9; // Maximum number of rows to display
   const STORAGE_KEY = 'trafficData';
+  const ALERTS_KEY = 'alertData';
   let events = [];
+  let alerts = [];
   
   // Define the columns in the desired order.
   const columns = [
@@ -27,12 +29,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Load alerts from localStorage.
+  function loadAlertsFromStorage() {
+    const storedAlerts = localStorage.getItem(ALERTS_KEY);
+    if (storedAlerts) {
+      try {
+        alerts = JSON.parse(storedAlerts);
+      } catch (e) {
+        console.error("Error parsing stored alerts:", e);
+        alerts = [];
+      }
+    }
+  }
+  
   // Render the table rows based on the current events array.
   function renderTable() {
     tbody.innerHTML = "";
     events.forEach(record => {
       const tr = document.createElement("tr");
-      // For each column, create a cell.
+      // Create a cell for each column.
       columns.forEach(col => {
         const td = document.createElement("td");
         td.textContent = record[col] !== undefined ? record[col] : '';
@@ -51,8 +66,14 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   }
   
-  // Load stored events and render them immediately.
+  // Save alerts to localStorage.
+  function saveAlertsToStorage() {
+    localStorage.setItem(ALERTS_KEY, JSON.stringify(alerts));
+  }
+  
+  // Load stored events and alerts, then render them.
   loadEventsFromStorage();
+  loadAlertsFromStorage();
   renderTable();
   
   // Fetch new data from the Flask endpoint.
@@ -61,24 +82,31 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => {
       // 'rawData' is a JSON string representing an array of row objects.
       const records = JSON.parse(data.rawData);
-      // data.type is an array of predictions corresponding to each record.
       
       // Add one row at a time every second.
       let currentRow = 0;
       const interval = setInterval(() => {
-        // Stop if we've processed all rows.
+        // If all rows are processed, stop the interval.
         if (currentRow >= records.length) {
           clearInterval(interval);
           // Optionally, trigger a new fetch for continuous updates.
           return;
         }
         
-        // Get the current record and update the "Time" field with the current system time.
+        // Get the current record and update its "Time" field.
         let record = records[currentRow];
         record["Time"] = new Date().toLocaleTimeString();
         
-        // Attach the prediction value to the record.
+        // Attach the prediction value from data.type.
         record.prediction = data.type[currentRow];
+        
+        // If the prediction is not 2, add it to the alerts.
+        if (record.prediction !== 2) {
+          // Attach the prediction description using data.predictType.
+          record.predictionStr = data.predictType[ record.prediction ];
+          alerts.push(record);
+          saveAlertsToStorage();
+        }
         
         // Add the new record to the events array.
         events.push(record);
@@ -88,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
           events.shift();
         }
         
-        // Save and re-render the table.
+        // Save the updated events array and re-render the table.
         saveEventsToStorage();
         renderTable();
         

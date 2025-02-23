@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    /* Sidebar styling */
+    .sidebar {
+      min-height: 100vh;
+      background-color: #343a40;
+    }
+    .sidebar a {
+      color: #fff;
+      padding: 15px;
+      display: block;
+    }
+    .sidebar a:hover {
+      background-color: #495057;
+      text-decoration: none;
+    }
+    .sidebar h4 {
+      padding-top: 15px;
+    }
+    /* Content styling */
+    .content {
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar Navigation -->
+      <nav class="col-md-2 d-none d-md-block sidebar">
+        <div class="sidebar-sticky">
+          <h4 class="text-center text-white">Dashboard</h4>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="model">Models</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="report">Reports</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="analytics">Analytics</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Main Dashboard Content -->
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4 content">
+        <!-- Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Admin Dashboard</h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+          </div>
+			<h1>The current time is: <span id="time"></span></h1>
+        </div>
+
+        <!-- Dashboard Widgets -->
+        <div class="row">
+		  <div class="container">
+			<h1 class="text-center">IoT Network Traffic</h1>
+			<table class="table table-striped" id="trafficTable">
+			  <thead class="thead-dark">
+				<tr>
+				  <th scope="col">Time</th>
+				  <th scope="col">Device ID</th>
+				  <th scope="col">Sensor Type</th>
+				  <th scope="col">Value</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				<!-- Traffic events will be added here dynamically -->
+			  </tbody>
+			</table>
+		  </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap and JavaScript dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="../static/js/dashboard.js"></script>
+</body>
+</html>

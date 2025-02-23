@@ -71,18 +71,19 @@
         <div class="row">
 		  <div class="container">
 			<h1 class="text-center">IoT Network Traffic</h1>
-			<table class="table table-striped" id="trafficTable">
+			<table class="table table-striped" id="data-table">
 			  <thead class="thead-dark">
 				<tr>
 				  <th scope="col">Time</th>
-				  <th scope="col">Device ID</th>
-				  <th scope="col">Sensor Type</th>
-				  <th scope="col">Value</th>
+				  <th scope="col">FC1 Read Input Register</th>
+				  <th scope="col">FC2 Read Discrete Value</th>
+				  <th scope="col">FC3 Read Holding Register</th>
+				  <th scope="col">FC4 Read Coil</th>
 				</tr>
 			  </thead>
-			  <tbody>
-				<!-- Traffic events will be added here dynamically -->
-			  </tbody>
+			  <tbody id="data-table-body">
+				  <!-- Rows will be added here one at a time -->
+				</tbody>
 			</table>
 		  </div>
         </div>

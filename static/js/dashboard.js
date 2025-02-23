@@ -1,10 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const tableBody = document.querySelector('#trafficTable tbody');
+  // Reference to the table body.
+  const tbody = document.getElementById("data-table-body");
   const maxRows = 9; // Maximum number of rows to store/display
   const STORAGE_KEY = 'trafficData';
   let events = [];
-
-  // Load events from localStorage
+  
+  // Define the columns in the desired order.
+  const columns = [
+    "Time",
+    "FC1 Read Input Register",
+    "FC2 Read Discrete Value",
+    "FC3 Read Holding Register",
+    "FC4 Read Coil"
+  ];
+  
+  // Load events from localStorage.
   function loadEventsFromStorage() {
     const storedEvents = localStorage.getItem(STORAGE_KEY);
     if (storedEvents) {
@@ -16,79 +26,76 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   }
-
-  // Save events to localStorage
+  
+  // Render the table rows based on the current events array.
+  function renderTable() {
+    tbody.innerHTML = "";
+    events.forEach(record => {
+      const tr = document.createElement("tr");
+      // For each column, create a cell.
+      columns.forEach(col => {
+        const td = document.createElement("td");
+        td.textContent = record[col] !== undefined ? record[col] : '';
+        tr.appendChild(td);
+      });
+      // If the record's prediction is not equal to 2, mark the row with a red background.
+      if (record.prediction !== 2) {
+        tr.style.backgroundColor = "red";
+      }
+      tbody.appendChild(tr);
+    });
+  }
+  
+  // Save events to localStorage.
   function saveEventsToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   }
-
-  // Render the events array into the table
-  function renderTable() {
-    tableBody.innerHTML = '';
-    // Iterate over events and append each as a table row
-    events.forEach(event => {
-      const newRow = document.createElement('tr');
-      newRow.innerHTML = `
-        <td>${event.time}</td>
-        <td>${event.device}</td>
-        <td>${event.sensorType}</td>
-        <td>${event.value}</td>
-      `;
-      tableBody.appendChild(newRow);
-    });
-  }
-
-  // Sample arrays for device IDs and sensor types
-  const deviceIds = ["Device-1", "Device-2", "Device-3", "Device-4", "Device-5"];
-  const sensorTypes = ["Temperature", "Humidity", "Light", "Motion"];
-
-  // Function to generate a random sensor value based on type
-  function generateRandomValue(sensorType) {
-    switch(sensorType) {
-      case "Temperature":
-        return (Math.random() * 15 + 15).toFixed(2) + " °C";
-      case "Humidity":
-        return (Math.random() * 40 + 30).toFixed(2) + " %";
-      case "Light":
-        return Math.floor(Math.random() * 1000) + " lx";
-      case "Motion":
-        return Math.random() > 0.5 ? "Motion Detected" : "No Motion";
-      default:
-        return "N/A";
-    }
-  }
-
-  // Function to add a new simulated IoT event
-  function addTrafficEvent() {
-    const now = new Date();
-    const time = now.toLocaleTimeString();
-    //Change this line of code
-	const device = deviceIds[Math.floor(Math.random() * deviceIds.length)];
-    const sensorType = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
-    const value = generateRandomValue(sensorType);
-
-    // Create the event object
-    const event = { time, device, sensorType, value };
-
-    // Insert the new event at the beginning of the array
-    events.unshift(event);
-
-    // If we exceed the max allowed rows, remove the oldest event
-    if (events.length > maxRows) {
-      events.pop();
-    }
-
-    // Update storage and render the table
-    saveEventsToStorage();
-    renderTable();
-  }
-
-  // On page load, load stored events and render them
+  
+  // Load stored events and render them immediately.
   loadEventsFromStorage();
   renderTable();
-
-  // Generate a new event every second
-  setInterval(addTrafficEvent, 1000);
+  
+  // Fetch new data from the Flask endpoint.
+  fetch("/modbusModel")
+    .then(response => response.json())
+    .then(data => {
+      // 'rawData' is a JSON string representing an array of row objects.
+      const records = JSON.parse(data.rawData);
+      // data.type is an array of predictions corresponding to each record.
+      
+      // Add one row at a time every second.
+      let currentRow = 0;
+      const interval = setInterval(() => {
+        // Stop if we've processed all rows.
+        if (currentRow >= records.length) {
+          clearInterval(interval);
+          // Optionally, trigger a new fetch for continuous updates.
+          return;
+        }
+        
+        // Get the current record and update the "Time" field with the current system time.
+        let record = records[currentRow];
+        record["Time"] = new Date().toLocaleTimeString();
+        
+        // Attach the prediction value to the record.
+        record.prediction = data.type[currentRow];
+        
+        // Add the new record to the events array.
+        events.push(record);
+        
+        // Enforce the maximum number of rows.
+        while (events.length > maxRows) {
+          events.shift();
+        }
+        
+        // Save and re-render the table.
+        saveEventsToStorage();
+        renderTable();
+        
+        currentRow++;
+      }, 1000);
+    })
+    .catch(error => console.error("Error fetching modbusModel data:", error));
 });
 
 // Function to update the time display

@@ -1,0 +1,4 @@
+model/modbus.joblib
+/__pycache__
+__pycache__/app.cpython-310.pyc
+data/IoT_Modbus.csv
